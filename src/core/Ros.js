@@ -58,7 +58,7 @@ Ros.prototype.__proto__ = EventEmitter2.prototype;
 /**
  * Connect to the specified WebSocket.
  *
- * @param url - WebSocket URL or RTCDataChannel label for Rosbridge
+ * @param url - WebSocket URL, RTCDataChannel label or RTCDataChannel for Rosbridge
  */
 Ros.prototype.connect = function(url) {
   if (this.transportLibrary === 'socket.io') {
@@ -68,7 +68,13 @@ Ros.prototype.connect = function(url) {
     this.socket.on('close', this.socket.onclose);
     this.socket.on('error', this.socket.onerror);
   } else if (this.transportLibrary.constructor.name === 'RTCPeerConnection') {
-    this.socket = assign(this.transportLibrary.createDataChannel(url, this.transportOptions), socketAdapter(this));
+    var dc;
+    if (url.constructor.name === 'RTCDataChannel') {
+      dc = url;
+    } else {
+      dc = this.transportLibrary.createDataChannel(url, this.transportOptions);
+    }
+    this.socket = assign(dc, socketAdapter(this));
   }else {
     this.socket = assign(new WebSocket(url), socketAdapter(this));
   }
